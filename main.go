@@ -42,7 +42,7 @@ func (b bot) selfDestruct() {
 
 
 func subreddit(message string) string {
-	re := regexp.MustCompile(`r\/[a-z_A-Z]*`)
+	re := regexp.MustCompile(`r\/[a-zA-Z_0-9]*`)
 	sub := re.FindString(message)
 
 	return fmt.Sprintf("https://www.reddit.com/%s", sub)
