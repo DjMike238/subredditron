@@ -15,10 +15,13 @@ type bot struct {
 
 
 func NewBot(engine echotron.Engine, chatId int64) echotron.Bot {
-	return &bot{
+	var bot = &bot{
 		chatId,
 		engine,
 	}
+
+	echotron.AddTimer(chatId, "selfDestruct", bot.selfDestruct, 60)
+	return bot
 }
 
 
@@ -28,6 +31,12 @@ func (b *bot) Update(update *echotron.Update) {
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
 		b.SendMessageReply(subreddit(update.Message.Text), b.chatId, update.Message.ID)
 	}
+}
+
+
+func (b bot) selfDestruct() {
+	echotron.DelTimer(b.chatId, "selfDestruct")
+	echotron.DelSession(b.chatId)
 }
 
 
