@@ -29,8 +29,8 @@ func (b *bot) Update(update *echotron.Update) {
 	if update.Message.Text == "/start" {
 		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
+		go echotron.ResetTimer(b.chatId, "selfDestruct")
 		b.SendMessageReply(subreddit(update.Message.Text), b.chatId, update.Message.ID)
-		echotron.ResetTimer(b.chatId, "selfDestruct")
 	}
 }
 
