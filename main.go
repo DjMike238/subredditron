@@ -48,13 +48,18 @@ func (b bot) selfDestruct() {
 func subreddit(message string) string {
 	re := regexp.MustCompile(`(^|[ /])r\/[a-zA-Z_0-9]*`)
 	sub := re.FindString(message)
+	url := ""
 
 	// Check if the matched string is longer than len(" r/") = 3
 	if len(sub) > 3 {
-		return fmt.Sprintf("https://www.reddit.com/%s", sub[1:])
-	} else {
-		return ""
+		if sub[:2] == "r/" {
+			url = fmt.Sprintf("https://www.reddit.com/%s", sub)
+		} else {
+			url = fmt.Sprintf("https://www.reddit.com/%s", sub[1:])
+		}
 	}
+
+	return url
 }
 
 
