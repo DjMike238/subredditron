@@ -46,7 +46,7 @@ func (b bot) selfDestruct() {
 
 
 func subreddit(message string) string {
-	re := regexp.MustCompile(`[ /]r\/[a-zA-Z_0-9]*`)
+	re := regexp.MustCompile(`(^|[ /])r\/[a-zA-Z_0-9]*`)
 	sub := re.FindString(message)
 
 	// Check if the matched string is longer than len(" r/") = 3
