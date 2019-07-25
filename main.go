@@ -30,7 +30,11 @@ func (b *bot) Update(update *echotron.Update) {
 		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
-		b.SendMessageReply(subreddit(update.Message.Text), b.chatId, update.Message.ID)
+		sub := subreddit(update.Message.Text)
+
+		if len(sub) > 0 {
+			b.SendMessageReply(sub, b.chatId, update.Message.ID)
+		}
 	}
 }
 
@@ -45,7 +49,12 @@ func subreddit(message string) string {
 	re := regexp.MustCompile(`r\/[a-zA-Z_0-9]*`)
 	sub := re.FindString(message)
 
-	return fmt.Sprintf("https://www.reddit.com/%s", sub)
+	// Check if the matched string is longer than len("r/") = 2
+	if len(sub) > 2 {
+		return fmt.Sprintf("https://www.reddit.com/%s", sub)
+	} else {
+		return ""
+	}
 }
 
 
