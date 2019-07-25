@@ -50,13 +50,14 @@ func subreddit(message string) string {
 	sub := re.FindString(message)
 	url := ""
 
-	// Check if the matched string is longer than len(" r/") = 3
-	if len(sub) > 3 {
-		if sub[:2] == "r/" {
-			url = fmt.Sprintf("https://www.reddit.com/%s", sub)
-		} else {
-			url = fmt.Sprintf("https://www.reddit.com/%s", sub[1:])
-		}
+	// Check if the matched string is longer than the minimum length for a subreddit
+	// name (which is 3) and shorter than the maximum length for a subreddit name
+	// (which is 21), both also counting "r/" or "*r/", where * is a character
+	// that can be a space (" ") or a slash ("/").
+	if len(sub) >= 5 && len(sub) <= 23 && sub[:2] == "r/" {
+		url = fmt.Sprintf("https://www.reddit.com/%s", sub)
+	} else if len(sub) >= 6 && len(sub) <= 24 && sub[1:3] == "r/" {
+		url = fmt.Sprintf("https://www.reddit.com/%s", sub[1:])
 	}
 
 	return url
