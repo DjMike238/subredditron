@@ -10,14 +10,17 @@ import (
 
 type bot struct {
 	chatId int64
-	echotron.Engine
+	echotron.Api
 }
 
 
-func NewBot(engine echotron.Engine, chatId int64) echotron.Bot {
+var dsp *echotron.Dispatcher
+
+
+func newBot(api echotron.Api, chatId int64) echotron.Bot {
 	var bot = &bot{
 		chatId,
-		engine,
+		api,
 	}
 
 	echotron.AddTimer(chatId, "selfDestruct", bot.selfDestruct, 60)
@@ -41,7 +44,7 @@ func (b *bot) Update(update *echotron.Update) {
 
 func (b bot) selfDestruct() {
 	echotron.DelTimer(b.chatId, "selfDestruct")
-	echotron.DelSession(b.chatId)
+	dsp.DelSession(b.chatId)
 }
 
 
@@ -65,5 +68,6 @@ func subreddit(message string) string {
 
 
 func main() {
-	echotron.RunDispatcher("TOKEN", NewBot)
+	dsp = echotron.NewDispatcher("983378957:AAGkoJoydcNsvbHIxU2KGy1ieR1cnDHPnU8", newBot)
+	dsp.Run()
 }
