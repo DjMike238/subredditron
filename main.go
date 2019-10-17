@@ -14,7 +14,9 @@ type bot struct {
 }
 
 
-var dsp *echotron.Dispatcher
+const BOT_NAME = "Subredditron"
+
+var dsp echotron.Dispatcher
 
 
 func newBot(api echotron.Api, chatId int64) echotron.Bot {
