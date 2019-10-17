@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"regexp"
 	"strings"
+	"net/http"
 	"gitlab.com/NicoNex/echotron"
 )
 
@@ -36,9 +38,15 @@ func (b *bot) Update(update *echotron.Update) {
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
 		sub := subreddit(update.Message.Text)
+		response, _ := http.Get(sub)
+		defer response.Body.Close()
 
-		if len(sub) > 0 {
+		if len(sub) > 0 && response.Status != "404 Not Found" {
 			b.SendMessageReply(sub, b.chatId, update.Message.ID)
+		} else if response.Status == "404 Not Found" {
+			resp := b.SendMessageReply("Subreddit not found.\nThis message will self-destruct in a few seconds.", b.chatId, update.Message.ID)
+			time.Sleep(5 * time.Second)
+			b.DeleteMessage(b.chatId, resp.Result.ID)
 		}
 	}
 }
