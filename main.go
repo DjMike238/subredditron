@@ -37,16 +37,22 @@ func (b *bot) Update(update *echotron.Update) {
 		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
-		sub := subreddit(update.Message.Text)
-		response, _ := http.Get(sub)
-		defer response.Body.Close()
 
-		if len(sub) > 0 && response.Status != "404 Not Found" {
-			b.SendMessageReply(sub, b.chatId, update.Message.ID)
-		} else if response.Status == "404 Not Found" {
-			resp := b.SendMessageReply("Subreddit not found.\nThis message will self-destruct in a few seconds.", b.chatId, update.Message.ID)
-			time.Sleep(5 * time.Second)
-			b.DeleteMessage(b.chatId, resp.Result.ID)
+		sub := subreddit(update.Message.Text)
+
+		var response *http.Response
+
+		if sub != "" {
+			response, _ = http.Get(sub)
+			defer response.Body.Close()
+
+			if response.Status == "404 Not Found" {
+				resp := b.SendMessageReply("Subreddit not found.\nThis message will self-destruct in a few seconds.", b.chatId, update.Message.ID)
+				time.Sleep(3 * time.Second)
+				b.DeleteMessage(b.chatId, resp.Result.ID)
+			} else {
+				b.SendMessageReply(sub, b.chatId, update.Message.ID)
+			}
 		}
 	}
 }
