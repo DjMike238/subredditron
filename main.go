@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 	"regexp"
 	"strings"
@@ -84,6 +85,14 @@ func subreddit(message string) string {
 
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Thread recovered. Crysis averted.")
+		}
+	}()
+	log.Println(fmt.Sprintf("%s started.", BOT_NAME))
+	defer log.Println(fmt.Sprintf("%s stopped.", BOT_NAME))
+
 	dsp = echotron.NewDispatcher("983378957:AAGkoJoydcNsvbHIxU2KGy1ieR1cnDHPnU8", newBot)
 	dsp.Run()
 }
