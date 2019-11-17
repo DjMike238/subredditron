@@ -34,6 +34,12 @@ func newBot(api echotron.Api, chatId int64) echotron.Bot {
 
 
 func (b *bot) Update(update *echotron.Update) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("Error:", err, "\nThread recovered. Crysis averted.")
+		}
+	}()
+
 	if update.Message.Text == "/start" {
 		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
@@ -85,11 +91,6 @@ func subreddit(message string) string {
 
 
 func main() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Thread recovered. Crysis averted.")
-		}
-	}()
 	log.Println(fmt.Sprintf("%s started.", BOT_NAME))
 	defer log.Println(fmt.Sprintf("%s stopped.", BOT_NAME))
 
