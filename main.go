@@ -92,6 +92,17 @@ func subreddit(message string) string {
 
 
 func main() {
+	_, err := os.Stat(fmt.Sprintf("%s/.log", os.Getenv("HOME")))
+	if os.IsNotExist(err) {
+		os.Mkdir(fmt.Sprintf("%s/.log", os.Getenv("HOME")), 0755)
+	}
+	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), BOT_NAME), os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	if err != nil {
+		log.Println(err)
+	}
+	defer logfile.Close()
+
+	log.SetOutput(logfile)
 	log.Println(fmt.Sprintf("%s started.", BOT_NAME))
 	defer log.Println(fmt.Sprintf("%s stopped.", BOT_NAME))
 
