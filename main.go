@@ -36,7 +36,8 @@ func newBot(api echotron.Api, chatId int64) echotron.Bot {
 func (b *bot) Update(update *echotron.Update) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("Error:", err, "\nThread recovered. Crysis averted.")
+			log.Println("Error:", err)
+			log.Println("Thread recovered. Crysis averted.")
 		}
 	}()
 
