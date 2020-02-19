@@ -107,6 +107,6 @@ func main() {
 	log.Println(fmt.Sprintf("%s started.", BOT_NAME))
 	defer log.Println(fmt.Sprintf("%s stopped.", BOT_NAME))
 
-	dsp = echotron.NewDispatcher("983378957:AAGkoJoydcNsvbHIxU2KGy1ieR1cnDHPnU8", newBot)
+	dsp = echotron.NewDispatcher("TOKEN", newBot)
 	dsp.Run()
 }
