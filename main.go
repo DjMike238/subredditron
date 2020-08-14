@@ -47,7 +47,7 @@ func (b *bot) Update(update *echotron.Update) {
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
 
-		b.sendChatAction("typing", b.chatId)
+		b.SendChatAction("typing", b.chatId)
 
 		sub := subreddit(update.Message.Text)
 
