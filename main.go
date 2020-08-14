@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"net/http"
-	"gitlab.com/NicoNex/echotron"
+	"github.com/NicoNex/echotron"
 )
 
 
