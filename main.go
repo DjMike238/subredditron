@@ -44,16 +44,20 @@ func (b *bot) Update(update *echotron.Update) {
 
 	if update.Message.Text == "/start" {
 		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
-	} else if (strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1) || 
-				(strings.Index(update.Message.Caption, "r/") != -1 && strings.Index(update.Message.Caption, "reddit.com") == -1) {
+
+	} else if update.Message.Text != "" || update.Message.Caption != "" {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
 
-		var sub string
+		var msg string
 
 		if update.Message.Text != "" {
-			sub = subreddit(update.Message.Text)
+			msg = update.Message.Text
 		} else if update.Message.Caption != "" {
-			sub = subreddit(update.Message.Caption)
+			msg = update.Message.Caption
+		}
+
+		if strings.Index(msg, "r/") != -1 && strings.Index(msg, "reddit.com") == -1 {
+			sub := subreddit(msg)
 		}
 
 		var response *http.Response
