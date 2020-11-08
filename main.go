@@ -47,13 +47,12 @@ func (b *bot) Update(update *echotron.Update) {
 	} else if strings.Index(update.Message.Text, "r/") != -1 && strings.Index(update.Message.Text, "reddit.com") == -1 {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
 
-		b.SendChatAction("typing", b.chatId)
-
 		sub := subreddit(update.Message.Text)
 
 		var response *http.Response
 
 		if sub != "" {
+			b.SendChatAction(echotron.TYPING, b.chatId)
 			response, _ = http.Get(sub)
 			defer response.Body.Close()
 
