@@ -56,8 +56,10 @@ func (b *bot) Update(update *echotron.Update) {
 			msg = update.Message.Caption
 		}
 
+		var sub string
+
 		if strings.Index(msg, "r/") != -1 && strings.Index(msg, "reddit.com") == -1 {
-			sub := subreddit(msg)
+			sub = subreddit(msg)
 		}
 
 		var response *http.Response
