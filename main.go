@@ -42,16 +42,8 @@ func (b *bot) Update(update *echotron.Update) {
 	if update.Message.Text == "/start" {
 		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
 
-	} else if update.Message.Text != "" || update.Message.Caption != "" {
+	} else if msg := extractMsg(update); msg != "" {
 		go echotron.ResetTimer(b.chatId, "selfDestruct")
-
-		var msg string
-
-		if update.Message.Text != "" {
-			msg = update.Message.Text
-		} else if update.Message.Caption != "" {
-			msg = update.Message.Caption
-		}
 
 		var sub string
 
@@ -77,6 +69,15 @@ func (b *bot) Update(update *echotron.Update) {
 	}
 }
 
+func extractMsg(update *echotron.Update) string {
+	if update.Message.Text != "" {
+		return update.Message.Text
+	} else if update.Message.Caption != "" {
+		return update.Message.Caption
+	} else {
+		return ""
+	}
+}
 
 func (b bot) selfDestruct() {
 	echotron.DelTimer(b.chatId, "selfDestruct")
