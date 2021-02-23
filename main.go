@@ -1,27 +1,25 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"log"
-	"time"
+	"net/http"
+	"os"
 	"regexp"
 	"strings"
-	"net/http"
+	"time"
+
 	"github.com/NicoNex/echotron"
 )
-
 
 type bot struct {
 	chatId int64
 	echotron.Api
 }
 
-
 const BOT_NAME = "Subredditron"
 
 var dsp echotron.Dispatcher
-
 
 func newBot(api echotron.Api, chatId int64) echotron.Bot {
 	var bot = &bot{
@@ -32,7 +30,6 @@ func newBot(api echotron.Api, chatId int64) echotron.Bot {
 	echotron.AddTimer(chatId, "selfDestruct", bot.selfDestruct, 60)
 	return bot
 }
-
 
 func (b *bot) Update(update *echotron.Update) {
 	defer func() {
@@ -86,7 +83,6 @@ func (b bot) selfDestruct() {
 	dsp.DelSession(b.chatId)
 }
 
-
 func subreddit(message string) string {
 	re := regexp.MustCompile(`(^|[ /])r\/[a-zA-Z_0-9]*`)
 	sub := re.FindString(message)
@@ -105,13 +101,12 @@ func subreddit(message string) string {
 	return url
 }
 
-
 func main() {
 	_, err := os.Stat(fmt.Sprintf("%s/.log", os.Getenv("HOME")))
 	if os.IsNotExist(err) {
 		os.Mkdir(fmt.Sprintf("%s/.log", os.Getenv("HOME")), 0755)
 	}
-	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), BOT_NAME), os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), BOT_NAME), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
@@ -122,5 +117,5 @@ func main() {
 	defer log.Println(fmt.Sprintf("%s stopped.", BOT_NAME))
 
 	dsp = echotron.NewDispatcher("TOKEN", newBot)
-	dsp.Run()
+	dsp.Poll()
 }
