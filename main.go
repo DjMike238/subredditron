@@ -17,18 +17,18 @@ type bot struct {
 	echotron.Api
 }
 
-const BOT_NAME = "Subredditron"
+const (
+	bot_name = "Subredditron"
+	token = "token"
+)
 
 var dsp echotron.Dispatcher
 
-func newBot(api echotron.Api, chatId int64) echotron.Bot {
-	var bot = &bot{
+func newBot(chatId int64) echotron.Bot {
+	return &bot{
 		chatId,
-		api,
+		echotron.NewApi(token),
 	}
-
-	echotron.AddTimer(chatId, "selfDestruct", bot.selfDestruct, 60)
-	return bot
 }
 
 func (b *bot) Update(update *echotron.Update) {
@@ -40,11 +40,9 @@ func (b *bot) Update(update *echotron.Update) {
 	}()
 
 	if update.Message.Text == "/start" {
-		b.SendMessageOptions("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
+		b.SendMessage("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
 
 	} else if msg := extractMsg(update); msg != "" {
-		go echotron.ResetTimer(b.chatId, "selfDestruct")
-
 		var sub string
 
 		if strings.Index(msg, "r/") != -1 && strings.Index(msg, "reddit.com") == -1 {
@@ -79,11 +77,6 @@ func extractMsg(update *echotron.Update) string {
 	}
 }
 
-func (b bot) selfDestruct() {
-	echotron.DelTimer(b.chatId, "selfDestruct")
-	dsp.DelSession(b.chatId)
-}
-
 func subreddit(message string) string {
 	re := regexp.MustCompile(`(^|[ /])r\/[a-zA-Z_0-9]*`)
 	sub := re.FindString(message)
@@ -107,16 +100,16 @@ func main() {
 	if os.IsNotExist(err) {
 		os.Mkdir(fmt.Sprintf("%s/.log", os.Getenv("HOME")), 0755)
 	}
-	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), BOT_NAME), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), bot_name), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
 	defer logfile.Close()
 
 	log.SetOutput(logfile)
-	log.Println(fmt.Sprintf("%s started.", BOT_NAME))
-	defer log.Println(fmt.Sprintf("%s stopped.", BOT_NAME))
+	log.Println(fmt.Sprintf("%s started.", bot_name))
+	defer log.Println(fmt.Sprintf("%s stopped.", bot_name))
 
-	dsp = echotron.NewDispatcher("TOKEN", newBot)
+	dsp = echotron.NewDispatcher(token, newBot)
 	dsp.Poll()
 }
