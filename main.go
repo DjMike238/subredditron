@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -31,41 +29,31 @@ func newBot(chatID int64) echotron.Bot {
 	}
 }
 
-func (b *bot) Update(update *echotron.Update) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Println("Error:", err)
-			log.Println("Thread recovered. Crysis averted.")
-		}
-	}()
-
-	if update.Message.Text == "/start" {
+func (b *bot) handleMsg(id int, msg string) {
+	if strings.HasPrefix(msg, "/start") {
 		b.SendMessage(
 			"Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.",
 			b.chatID,
 			echotron.ParseMarkdown,
 		)
 
-	} else if msg := extractMsg(update); msg != "" {
+	} else if msg != "" {
 		var sub string
 
-		if strings.Index(msg, "r/") != -1 && strings.Index(msg, "reddit.com") == -1 {
-			sub = subreddit(msg)
+		if checkMsg(msg) {
+			sub = getSub(msg)
 		}
 
 		if sub != "" {
-			b.SendChatAction(echotron.Typing, b.chatID)
-			response, err := http.Get(sub)
-			if err != nil {
-				log.Println(err)
-			}
-			defer response.Body.Close()
+			status := getStatus(sub)
 
-			if response.Status == "404 Not Found" {
+			b.SendChatAction(echotron.Typing, b.chatID)
+
+			if status == 404 {
 				resp, err := b.SendMessageReply(
 					"Subreddit not found.\nThis message will self-destruct in a few seconds.",
 					b.chatID,
-					update.Message.ID,
+					id,
 				)
 				if err != nil {
 					log.Println(err)
@@ -73,38 +61,80 @@ func (b *bot) Update(update *echotron.Update) {
 				time.Sleep(3 * time.Second)
 				b.DeleteMessage(b.chatID, resp.Result.ID)
 			} else {
-				b.SendMessageReply(sub, b.chatID, update.Message.ID)
+				b.SendMessageReply(sub, b.chatID, id)
 			}
 		}
 	}
 }
 
-func extractMsg(update *echotron.Update) string {
-	if update.Message.Text != "" {
-		return update.Message.Text
-	} else if update.Message.Caption != "" {
-		return update.Message.Caption
-	} else {
-		return ""
+func (b *bot) handleInline(id, query string) {
+	var msg string
+	var sub string
+
+	if checkMsg(query) {
+		msg = query
+	} else if query != "" {
+		msg = fmt.Sprintf("r/%s", query)
+	}
+
+	if msg != "" {
+		sub = getSub(msg)
+	}
+
+	if sub != "" {
+		status := getStatus(sub)
+
+		if status == 404 {
+			_, err := b.AnswerInlineQueryOptions(
+				id,
+				[]echotron.InlineQueryResult{},
+				echotron.InlineQueryOptions{
+					CacheTime:         300,
+					SwitchPmText:      "Subreddit not found! Try again.",
+					SwitchPmParameter: "start",
+				},
+			)
+			if err != nil {
+				log.Println(err)
+			}
+		} else {
+			title, desc, thumb := getPreview(msg)
+
+			_, err := b.AnswerInlineQuery(
+				id,
+				[]echotron.InlineQueryResult{
+					&echotron.InlineQueryResultArticle{
+						Type:        echotron.ARTICLE,
+						ID:          msg,
+						Title:       title,
+						Description: desc,
+						ThumbURL:    thumb,
+						InputMessageContent: echotron.InputTextMessageContent{
+							MessageText: sub,
+						},
+					},
+				},
+			)
+			if err != nil {
+				log.Println(err)
+			}
+		}
 	}
 }
 
-func subreddit(message string) string {
-	re := regexp.MustCompile(`(^|[ /])r\/[a-zA-Z_0-9]*`)
-	sub := re.FindString(message)
-	var url string
+func (b *bot) Update(update *echotron.Update) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(err)
+			log.Println("Thread recovered. Crysis averted.")
+		}
+	}()
 
-	// Check if the matched string is longer than the minimum length for a subreddit
-	// name (which is 3) and shorter than the maximum length for a subreddit name
-	// (which is 21), both also counting "r/" or "*r/", where * is a character
-	// that can be a space (" ") or a slash ("/").
-	if len(sub) >= 5 && len(sub) <= 23 && sub[:2] == "r/" {
-		url = fmt.Sprintf("https://www.reddit.com/%s", sub)
-	} else if len(sub) >= 6 && len(sub) <= 24 && sub[1:3] == "r/" {
-		url = fmt.Sprintf("https://www.reddit.com/%s", sub[1:])
+	if update.Message != nil {
+		b.handleMsg(update.Message.ID, extractMsg(update.Message))
+	} else if update.InlineQuery != nil {
+		b.handleInline(update.InlineQuery.ID, update.InlineQuery.Query)
 	}
-
-	return url
 }
 
 func main() {
