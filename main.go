@@ -9,25 +9,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NicoNex/echotron"
+	"github.com/NicoNex/echotron/v2"
 )
 
 type bot struct {
-	chatId int64
-	echotron.Api
+	chatID int64
+	echotron.API
 }
 
 const (
-	bot_name = "Subredditron"
-	token = "token"
+	botName = "Subredditron"
+	token   = "token"
 )
 
-var dsp echotron.Dispatcher
+var dsp *echotron.Dispatcher
 
-func newBot(chatId int64) echotron.Bot {
+func newBot(chatID int64) echotron.Bot {
 	return &bot{
-		chatId,
-		echotron.NewApi(token),
+		chatID,
+		echotron.NewAPI(token),
 	}
 }
 
@@ -40,7 +40,11 @@ func (b *bot) Update(update *echotron.Update) {
 	}()
 
 	if update.Message.Text == "/start" {
-		b.SendMessage("Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.", b.chatId, echotron.PARSE_MARKDOWN)
+		b.SendMessage(
+			"Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.",
+			b.chatID,
+			echotron.ParseMarkdown,
+		)
 
 	} else if msg := extractMsg(update); msg != "" {
 		var sub string
@@ -49,19 +53,27 @@ func (b *bot) Update(update *echotron.Update) {
 			sub = subreddit(msg)
 		}
 
-		var response *http.Response
-
 		if sub != "" {
-			b.SendChatAction(echotron.TYPING, b.chatId)
-			response, _ = http.Get(sub)
+			b.SendChatAction(echotron.Typing, b.chatID)
+			response, err := http.Get(sub)
+			if err != nil {
+				log.Println(err)
+			}
 			defer response.Body.Close()
 
 			if response.Status == "404 Not Found" {
-				resp := b.SendMessageReply("Subreddit not found.\nThis message will self-destruct in a few seconds.", b.chatId, update.Message.ID)
+				resp, err := b.SendMessageReply(
+					"Subreddit not found.\nThis message will self-destruct in a few seconds.",
+					b.chatID,
+					update.Message.ID,
+				)
+				if err != nil {
+					log.Println(err)
+				}
 				time.Sleep(3 * time.Second)
-				b.DeleteMessage(b.chatId, resp.Result.ID)
+				b.DeleteMessage(b.chatID, resp.Result.ID)
 			} else {
-				b.SendMessageReply(sub, b.chatId, update.Message.ID)
+				b.SendMessageReply(sub, b.chatID, update.Message.ID)
 			}
 		}
 	}
@@ -100,15 +112,15 @@ func main() {
 	if os.IsNotExist(err) {
 		os.Mkdir(fmt.Sprintf("%s/.log", os.Getenv("HOME")), 0755)
 	}
-	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), bot_name), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), botName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
 	defer logfile.Close()
 
 	log.SetOutput(logfile)
-	log.Println(fmt.Sprintf("%s started.", bot_name))
-	defer log.Println(fmt.Sprintf("%s stopped.", bot_name))
+	log.Println(fmt.Sprintf("%s started.", botName))
+	defer log.Println(fmt.Sprintf("%s stopped.", botName))
 
 	dsp = echotron.NewDispatcher(token, newBot)
 	dsp.Poll()

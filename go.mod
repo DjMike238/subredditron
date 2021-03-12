@@ -2,4 +2,6 @@ module subredditron
 
 go 1.16
 
-require github.com/NicoNex/echotron v0.0.0
+require (
+	github.com/NicoNex/echotron/v2 v2.2.0
+)
