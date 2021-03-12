@@ -98,17 +98,17 @@ func (b *bot) handleInline(id, query string) {
 				log.Println(err)
 			}
 		} else {
-			title, desc, thumb := getPreview(msg)
+			data := getPreview(msg)
 
 			_, err := b.AnswerInlineQuery(
 				id,
 				[]echotron.InlineQueryResult{
 					&echotron.InlineQueryResultArticle{
 						Type:        echotron.ARTICLE,
-						ID:          msg,
-						Title:       title,
-						Description: desc,
-						ThumbURL:    thumb,
+						ID:          getName(data),
+						Title:       getTitle(data),
+						Description: getDesc(data),
+						ThumbURL:    getThumb(data),
 						InputMessageContent: echotron.InputTextMessageContent{
 							MessageText: sub,
 						},

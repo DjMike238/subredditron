@@ -36,7 +36,7 @@ func getStatus(url string) int {
 	return response.StatusCode
 }
 
-func getPreview(sub string) (string, string, string) {
+func getPreview(sub string) *Data {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://reddit.com/%s/about.json", sub), nil)
@@ -54,7 +54,7 @@ func getPreview(sub string) (string, string, string) {
 
 	if resp.StatusCode == 429 {
 		log.Println("too many requests to reddit servers: try again later")
-		return sub, "", ""
+		return &Data{DisplayName: sub}
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -68,18 +68,7 @@ func getPreview(sub string) (string, string, string) {
 		log.Println(err)
 	}
 
-	title := fmt.Sprintf("%s · %s", about.Data.Title, about.Data.Name)
-	var thumb string
-
-	if about.Data.Icon != "" {
-		thumb = about.Data.Icon
-	} else if about.Data.CommunityIcon != "" {
-		thumb = about.Data.CommunityIcon
-	} else if about.Data.Banner != "" {
-		thumb = about.Data.Banner
-	}
-
-	return title, about.Data.Description, thumb
+	return about.Data
 }
 
 func getSub(msg string) string {
