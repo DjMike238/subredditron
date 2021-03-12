@@ -73,6 +73,8 @@ func getPreview(sub string) (string, string, string) {
 
 	if about.Data.Icon != "" {
 		thumb = about.Data.Icon
+	} else if about.Data.CommunityIcon != "" {
+		thumb = about.Data.CommunityIcon
 	} else if about.Data.Banner != "" {
 		thumb = about.Data.Banner
 	}
