@@ -16,7 +16,6 @@ type Data struct {
 	Description   string `json:"public_description,omitempty"`
 	HeaderTitle   string `json:"header_title,omitempty"`
 	Icon          string `json:"icon_img,omitempty"`
-	CommunityIcon string `json:"community_icon,omitempty"`
 	Banner        string `json:"header_img,omitempty"`
 }
 
@@ -25,8 +24,6 @@ func getThumb(data *Data) string {
 		return data.Icon
 	} else if data.Banner != "" {
 		return data.Banner
-	} else if data.CommunityIcon != "" {
-		return data.CommunityIcon
 	}
 
 	return ""
