@@ -22,10 +22,10 @@ type Data struct {
 func getThumb(data *Data) string {
 	if data.Icon != "" {
 		return data.Icon
-	} else if data.CommunityIcon != "" {
-		return data.CommunityIcon
 	} else if data.Banner != "" {
 		return data.Banner
+	} else if data.CommunityIcon != "" {
+		return data.CommunityIcon
 	}
 
 	return ""
