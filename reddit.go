@@ -14,6 +14,7 @@ type Data struct {
 	Title         string `json:"title"`
 	DisplayName   string `json:"display_name_prefixed"`
 	Description   string `json:"public_description,omitempty"`
+	HeaderTitle   string `json:"header_title,omitempty"`
 	Icon          string `json:"icon_img,omitempty"`
 	CommunityIcon string `json:"community_icon,omitempty"`
 	Banner        string `json:"header_img,omitempty"`
@@ -32,15 +33,21 @@ func getThumb(data *Data) string {
 }
 
 func getTitle(data *Data) string {
-	if data.Title != "" {
+	if data.Title != "" && data.Title != data.DisplayName {
 		return fmt.Sprintf("%s · %s", data.Title, data.DisplayName)
 	}
-
+	
 	return data.DisplayName
 }
 
 func getDesc(data *Data) string {
-	return data.Description
+	if data.Description != "" {
+		return data.Description
+	} else if data.HeaderTitle != "" {
+		return data.HeaderTitle
+	}
+
+	return ""
 }
 
 func getName(data *Data) string {
