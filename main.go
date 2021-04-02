@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -18,6 +19,11 @@ type bot struct {
 const (
 	botName = "Subredditron"
 	token   = "token"
+	welcome = `Welcome to *Subredditron*!
+Send me any message with a subreddit in the format ` + "`r/subreddit` or `/r/subreddit`" + `and I'll send you a link for that subreddit.
+
+Created by @Dj\_Mike238.
+This bot is [open source](https://github.com/DjMike238/subredditron)!`
 )
 
 var dsp *echotron.Dispatcher
@@ -32,7 +38,7 @@ func newBot(chatID int64) echotron.Bot {
 func (b *bot) handleMsg(id int, msg string) {
 	if strings.HasPrefix(msg, "/start") {
 		b.SendMessage(
-			"Welcome to *Subredditron*!\nSend me any message with a subreddit in the format `r/subreddit` or `/r/subreddit` and I'll send you a link for that subreddit.",
+			welcome,
 			b.chatID,
 			echotron.ParseMarkdown,
 		)
@@ -138,17 +144,18 @@ func (b *bot) Update(update *echotron.Update) {
 }
 
 func main() {
-	_, err := os.Stat(fmt.Sprintf("%s/.log", os.Getenv("HOME")))
+	logPath := path.Join(os.Getenv("HOME"), ".log")
+	_, err := os.Stat(logPath)
 	if os.IsNotExist(err) {
-		os.Mkdir(fmt.Sprintf("%s/.log", os.Getenv("HOME")), 0755)
+		os.Mkdir(logPath, 0755)
 	}
-	logfile, err := os.OpenFile(fmt.Sprintf("%s/.log/%s.log", os.Getenv("HOME"), botName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(path.Join(os.Getenv("HOME"), ".log", botName + ".log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
-	defer logfile.Close()
+	defer logFile.Close()
 
-	log.SetOutput(logfile)
+	log.SetOutput(logFile)
 	log.Println(fmt.Sprintf("%s started.", botName))
 	defer log.Println(fmt.Sprintf("%s stopped.", botName))
 
